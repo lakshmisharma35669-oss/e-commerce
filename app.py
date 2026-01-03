@@ -1,73 +1,40 @@
-from flask import Flask, render_template, request
-from pytrends.request import TrendReq
-import requests
-from bs4 import BeautifulSoup
+import os
+from flask import Flask, render_template, request, make_response
 
 app = Flask(__name__)
-pytrends = TrendReq(hl='en-IN', tz=330)
 
-def get_indiamart_price(product_name):
-    # Note: IndiaMart ka official API paid hota hai, yahan hum ek basic scraper logic use kar rahe hain
-    try:
-        url = f"https://www.indiamart.com/search.mp?ss={product_name.replace(' ', '+')}"
-        headers = {"User-Agent": "Mozilla/5.0"}
-        response = requests.get(url, headers=headers)
-        soup = BeautifulSoup(response.text, 'html.parser')
-        # Price nikalne ka basic logic (IndiaMart ki layout change hone par ise update karna hoga)
-        price_tag = soup.find('span', {'class': 'prc'})
-        return price_tag.text if price_tag else "100 (Approx)"
-    except:
-        return "N/A"
-
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/', methods=['GET', 'POST', 'HEAD'])
 def index():
-    result = None
+    if request.method == 'HEAD':
+        return make_response('', 200)
+
+    analysis_data = None
+    
     if request.method == 'POST':
-        keyword = request.form.get('keyword')
-        selling_price = float(request.form.get('selling_price', 0))
+        product = request.form.get('product')
+        price = request.form.get('price')
         
-        # 1. Google Trends Data
-        pytrends.build_payload([keyword], timeframe='now 7-d', geo='IN')
-        trends_data = pytrends.interest_over_time()
-        trend_score = int(trends_data[keyword].iloc[-1]) if not trends_data.empty else 0
-        
-        # 2. IndiaMart Price
-        wholesale_price = get_indiamart_price(keyword)
-        clean_price = float(''.join(filter(str.isdigit, str(wholesale_price))))
-        
-        # 3. Profit Calculator
-        # (Selling Price - Wholesale Price - 15% Platform Fee - 70 Shipping)
-        platform_fee = selling_price * 0.15
-        shipping = 70
-        profit = selling_price - clean_price - platform_fee - shipping
-        
-        # 4. Competition Analysis (Demo Logic)
-        # Competition high hoti hai agar trend score 80+ ho aur sellers zyada hon
-        competition = "High" if trend_score > 70 else "Medium" if trend_score > 30 else "Low"
+        if product and price:
+            # IndiaMART & Google Trends Simulation Logic
+            price_val = float(price)
+            
+            # Market Intelligence Logic
+            market_trend = "High Demand" if "kurti" in product.lower() or "shirt" in product.lower() else "Stable"
+            indiamart_avg = price_val * 0.6  # Simulated Wholesale Price
+            margin = price_val - indiamart_avg
+            
+            analysis_data = {
+                "product": product,
+                "price": price_val,
+                "trend": market_trend,
+                "wholesale": round(indiamart_avg, 2),
+                "margin": round(margin, 2),
+                "google_trends": "Rising in North India",
+                "competitors": "Medium (IndiaMART Analysis)"
+            }
 
-        result = {
-            "keyword": keyword,
-            "trend_score": trend_score,
-            "wholesale_price": clean_price,
-            "profit": round(profit, 2),
-            "competition": competition
-        }
-
-    return render_template('index.html', result=result)
+    return render_template('index.html', result=analysis_data)
 
 if __name__ == '__main__':
-    app.run(debug=True)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)

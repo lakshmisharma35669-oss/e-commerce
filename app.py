@@ -5,13 +5,13 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST', 'HEAD'])
 def index():
-    # 1. Render Health Check Fix (HEAD error ko khatam karta hai)
+    # 1. Render Health Check Fix
     if request.method == 'HEAD':
         return make_response('', 200)
 
     result_data = None
     
-    # 2. Market Analysis Logic (POST)
+    # 2. Market Logic (POST Request)
     if request.method == 'POST':
         try:
             p_name = request.form.get('product', '')
@@ -19,28 +19,22 @@ def index():
             
             if p_name and p_price:
                 price_val = float(p_price)
-                
-                # IndiaMART Simulation: Wholesale price usually 50-60% of retail
+                # Wholesale Logic (IndiaMART Style)
                 wholesale = price_val * 0.55
-                profit = price_val - wholesale
-                
-                # Google Trends Simulation
-                trend = "🔥 High Demand" if price_val < 1500 else "💎 Premium Niche"
+                margin = price_val - wholesale
                 
                 result_data = {
                     "name": p_name,
                     "price": price_val,
                     "wholesale": round(wholesale, 2),
-                    "margin": round(profit, 2),
-                    "trends": trend,
-                    "source": "IndiaMART & Trends Analysis"
+                    "margin": round(margin, 2),
+                    "trends": "🔥 Trending on Google & IndiaMART"
                 }
-        except Exception as e:
-            print(f"Error: {e}")
-            result_data = {"error": "Please enter a valid price."}
+        except:
+            result_data = {"error": "Invalid Price"}
 
-    # 3. Page Loading (GET)
-    # Yahan 'index.html' hona chahiye jo templates folder mein hai
+    # 3. Page Loading (GET Request)
+    # Yeh 'index.html' tabhi chalega jab aapne file ka naam badal diya ho
     return render_template('index.html', result=result_data)
 
 if __name__ == '__main__':

@@ -1,22 +1,32 @@
-<index.html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-com Profit & Trend Analyzer</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <style>
+        .card { border-radius: 12px; transition: 0.3s; }
+        .card:hover { transform: translateY(-5px); }
+        .display-6 { font-weight: bold; font-size: 1.8rem; }
+    </style>
 </head>
 <body class="bg-light">
     <div class="container mt-5">
-        <h2 class="text-center mb-4">IndiaMart to Meesho/Flipkart Analyzer</h2>
-        <div class="card p-4 shadow">
+        <h2 class="text-center mb-4 text-primary">IndiaMart to Meesho/Flipkart Analyzer</h2>
+        
+        <div class="card p-4 shadow-sm border-0">
             <form method="POST">
-                <div class="row">
+                <div class="row g-3">
                     <div class="col-md-5">
-                        <input type="text" name="keyword" class="form-control" placeholder="Product Name (e.g. Saree)" required>
+                        <label class="form-label">Product Name</label>
+                        <input type="text" name="keyword" class="form-control" placeholder="e.g. Saree, Kurti" required>
                     </div>
                     <div class="col-md-5">
-                        <input type="number" name="selling_price" class="form-control" placeholder="Your Selling Price on Meesho" required>
+                        <label class="form-label">Selling Price on Meesho (₹)</label>
+                        <input type="number" name="selling_price" class="form-control" placeholder="Enter Price" required>
                     </div>
-                    <div class="col-md-2">
+                    <div class="col-md-2 d-flex align-items-end">
                         <button type="submit" class="btn btn-primary w-100">Analyze</button>
                     </div>
                 </div>
@@ -24,36 +34,39 @@
         </div>
 
         {% if result %}
-        <div class="row mt-4">
-            <div class="col-md-3">
-                <div class="card p-3 bg-white">
-                    <h5>Trend Score</h5>
-                    <p class="display-6">{{ result.trend_score }}/100</p>
+            {% if result.error %}
+                <div class="alert alert-danger mt-4">{{ result.error }}</div>
+            {% else %}
+                <div class="row mt-4">
+                    <div class="col-md-3 mb-3">
+                        <div class="card p-3 bg-white shadow-sm text-center">
+                            <h6 class="text-muted">Trend Score</h6>
+                            <p class="display-6 text-info">{{ result.trend_score }}/100</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card p-3 bg-white shadow-sm text-center">
+                            <h6 class="text-muted">Wholesale Price</h6>
+                            <p class="display-6 text-dark">₹{{ result.wholesale_price }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card p-3 bg-white shadow-sm text-center">
+                            <h6 class="text-muted">Est. Profit</h6>
+                            <p class="display-6 text-success">₹{{ result.profit }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card p-3 bg-white shadow-sm text-center">
+                            <h6 class="text-muted">Competition</h6>
+                            <p class="display-6 {% if result.competition == 'High' %}text-danger{% else %}text-warning{% endif %}">
+                                {{ result.competition }}
+                            </p>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 bg-white">
-                    <h5>Wholesale Price</h5>
-                    <p class="display-6">₹{{ result.wholesale_price }}</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 bg-white text-success">
-                    <h5>Est. Profit</h5>
-                    <p class="display-6">₹{{ result.profit }}</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card p-3 bg-white">
-                    <h5>Competition</h5>
-                    <p class="display-6 {% if result.competition == 'High' %}text-danger{% else %}text-warning{% endif %}">
-                        {{ result.competition }}
-                    </p>
-                </div>
-            </div>
-        </div>
+            {% endif %}
         {% endif %}
     </div>
 </body>
 </html>
-
